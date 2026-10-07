@@ -68,6 +68,9 @@ option(RETAIL
 option(FLATPAK
 		"Strip certain developer features and cheats from flatpak builds" OFF)
 
+option(TOOLS
+        "Enable extra tools, not required for running the game" ON)
+
 #set(NVRHI_INSTALL OFF)
 
 set(CPU_TYPE "" CACHE STRING "When set, passes this string as CPU-ID which will be embedded into the binary.")
@@ -453,7 +456,7 @@ endif()
 
 # RB: there haven't been requests for a separate map compiler executable by macOS users
 # and it is ok to not support it until someone also supports TrenchBroomBFG on macOS
-if(NOT APPLE AND NOT FLATPAK)
+if(TOOLS AND NOT APPLE AND NOT FLATPAK)
 	add_subdirectory(tools/compilers)
 endif()
 
