@@ -772,6 +772,7 @@ private:
 		return GetCurrentGame() != DOOM3_BFG;
 	}
 	void	PerformGameSwitch();
+	void    OnGameChange( currentGame_t newGame );
 #endif
 	// RB end
 };

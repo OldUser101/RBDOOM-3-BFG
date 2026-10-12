@@ -5,6 +5,7 @@ Doom 3 BFG Edition GPL Source Code
 Copyright (C) 1993-2012 id Software LLC, a ZeniMax Media company.
 Copyright (C) 2014-2021 Robert Beckebans
 Copyright (C) 2014-2016 Kot in Action Creative Artel
+Copyright (C) 2026 Nathan Gill
 
 This file is part of the Doom 3 BFG Edition GPL Source Code ("Doom 3 BFG Edition Source Code").
 
@@ -32,6 +33,10 @@ If you have questions concerning this license or the applicable additional terms
 #pragma hdrstop
 
 #include "Game_local.h"
+
+#if defined(USE_DISCORD_RPC)
+    #include "framework/DiscordRPC.h"
+#endif
 
 #ifdef GAME_DLL
 
@@ -939,6 +944,32 @@ const idDict& idGameLocal::GetServerInfo()
 }
 
 /*
+==========
+idGameLocal::OnMapChanged
+==========
+*/
+void idGameLocal::OnMapChanged( const char* mapName )
+{
+#if defined(USE_DISCORD_RPC)
+    idStr mapDefName = mapName;
+
+    mapDefName.StripFileExtension();
+    mapDefName.StripLeading( "maps/" );
+
+    const char* _displayName = mapDefName.c_str();
+
+    const idDeclEntityDef* mapDef = static_cast<const idDeclEntityDef*>( declManager->FindType( DECL_MAPDEF, mapDefName, false ) );
+    if ( mapDef != NULL )
+    {
+       _displayName = idLocalization::GetString( mapDef->dict.GetString( "name", mapDefName ) );
+    }
+
+    idStr displayName = _displayName;
+    discordRpcManager->SetMapName(displayName);
+#endif
+}
+
+/*
 ===================
 idGameLocal::LoadMap
 
@@ -974,6 +1005,11 @@ void idGameLocal::LoadMap( const char* mapName, int randseed )
 		}
 	}
 	mapFileName = mapFile->GetName();
+
+	if ( !sameMap )
+    {
+        OnMapChanged( mapFileName );
+    }
 
 	// load the collision map
 	collisionModelManager->LoadMap( mapFile, false );
@@ -1772,6 +1808,10 @@ void idGameLocal::MapShutdown()
 	gameSoundWorld = NULL;
 
 	gamestate = GAMESTATE_NOMAP;
+
+#if defined(USE_DISCORD_RPC)
+    discordRpcManager->ClearMapName();
+#endif
 
 	Printf( "--------------------------------------\n" );
 }

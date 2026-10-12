@@ -734,6 +734,8 @@ private:
 	static int				sortSpawnPoints( const void* ptr1, const void* ptr2 );
 
 	bool					SimulateProjectiles();
+
+	void                    OnMapChanged( const char* mapName );
 };
 
 //============================================================================

@@ -5,6 +5,7 @@ Doom 3 BFG Edition GPL Source Code
 Copyright (C) 1993-2012 id Software LLC, a ZeniMax Media company.
 Copyright (C) 2012-2025 Robert Beckebans
 Copyright (C) 2022 Stephen Pridham
+Copyright (C) 2026 Nathan Gill
 
 This file is part of the Doom 3 BFG Edition GPL Source Code ("Doom 3 BFG Edition Source Code").
 
@@ -48,6 +49,9 @@ extern DeviceManager* deviceManager;
 #endif
 // RB end
 
+#if defined(USE_DISCORD_RPC)
+    #include "DiscordRPC.h"
+#endif
 
 #include "../sys/sys_savegame.h"
 
@@ -1466,6 +1470,10 @@ void idCommonLocal::Init( int argc, const char* const* argv, const char* cmdline
 #endif
 		// RB end
 
+#if defined(USE_DISCORD_RPC)
+        discordRpcManager->Init();
+#endif
+
 		com_fullyInitialized = true;
 
 		globalImages->LoadDeferredImages();
@@ -1507,6 +1515,9 @@ void idCommonLocal::Shutdown()
 	}
 	com_shuttingDown = true;
 
+#if defined(USE_DISCORD_RPC)
+        discordRpcManager->Shutdown();
+#endif
 
 	// Kill any pending saves...
 	printf( "session->GetSaveGameManager().CancelToTerminate();\n" );
@@ -2003,6 +2014,30 @@ void idCommonLocal::PerformGameSwitch()
 	}
 
 	currentGame = idealCurrentGame;
+    OnGameChange(idealCurrentGame);
+}
+
+void idCommonLocal::OnGameChange( currentGame_t newGame )
+{
+#if defined(USE_DISCORD_RPC)
+    CurrentGame game;
+
+    if (newGame == DOOM_CLASSIC)
+    {
+        game = CurrentGame::DoomClassic;
+    }
+    else if (newGame == DOOM2_CLASSIC)
+    {
+        game = CurrentGame::Doom2Classic;
+    }
+    else
+    {
+        game = CurrentGame::Doom3;
+    }
+
+    discordRpcManager->SetGame(game);
+    discordRpcManager->ClearMapName();
+#endif
 }
 
 #endif // #if defined(USE_DOOMCLASSIC)

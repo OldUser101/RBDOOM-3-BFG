@@ -34,6 +34,9 @@ If you have questions concerning this license or the applicable additional terms
 #include "sys/sys_session.h"
 #include "idlib/Thread.h"
 
+#if defined(USE_DISCORD_RPC)
+    #include "framework/DiscordRPC.h"
+#endif
 
 #include <sys/types.h>
 
@@ -200,6 +203,10 @@ void ExitGame()
 	D_QuitNetGame();
 
 	session->QuitMatch();
+
+#if defined(USE_DISCORD_RPC)
+    discordRpcManager->ClearMapName();
+#endif
 }
 
 void ShowXToContinue( bool activate )

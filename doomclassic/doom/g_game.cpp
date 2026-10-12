@@ -3,6 +3,7 @@
 
 Doom 3 BFG Edition GPL Source Code
 Copyright (C) 1993-2012 id Software LLC, a ZeniMax Media company.
+Copyright (C) 2026 Nathan Gill
 
 This file is part of the Doom 3 BFG Edition GPL Source Code ("Doom 3 BFG Edition Source Code").
 
@@ -79,6 +80,10 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "framework/Common.h"
 #include "sys/sys_lobby.h"
+
+#if defined(USE_DISCORD_RPC)
+    #include "framework/DiscordRPC.h"
+#endif
 
 #include <limits>
 
@@ -680,6 +685,11 @@ void G_DoLoadLevel()
 	::g->sendpause = ::g->sendsave = ::g->paused = false;
 	memset( ::g->mousebuttons, 0, sizeof( ::g->mousebuttons[0] ) * 3 ); // SRS - mousebuttons[0] points at mousearray[1] to mousearray[3], [-1] allowed
 	memset( ::g->joybuttons, 0, sizeof( ::g->joybuttons[0] ) * 4 );     // SRS - joybuttons[0] points at joyarray[1] to joyarray[4], [-1] allowed
+
+#if defined(USE_DISCORD_RPC)
+    idStr mapName = expansion->mapNames[ truemap - 1 ];
+    discordRpcManager->SetMapName(mapName);
+#endif
 }
 
 //
@@ -1462,6 +1472,10 @@ void G_DoCompleted( void )
 	::g->automapactive = false;
 
 	WI_Start( &::g->wminfo );
+
+#if defined(USE_DISCORD_RPC)
+    discordRpcManager->ClearMapName();
+#endif
 }
 
 

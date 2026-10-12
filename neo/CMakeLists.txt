@@ -69,7 +69,10 @@ option(FLATPAK
 		"Strip certain developer features and cheats from flatpak builds" OFF)
 
 option(TOOLS
-        "Enable extra tools, not required for running the game" ON)
+        "Enable extra tools, not required for running the game" OFF)
+
+option(DISCORD_RPC
+        "Enable Discord RPC" ON)
 
 #set(NVRHI_INSTALL OFF)
 
@@ -429,6 +432,14 @@ endif()
 include_directories(${NVRHI_DIR}/include)
 include_directories(${SHADERMAKE_DIR}/include)
 
+if (DISCORD_RPC)
+    set(DISCORD_RPC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extern/discord-rpc)
+    add_subdirectory(${DISCORD_RPC_DIR})
+    add_definitions(-DUSE_DISCORD_RPC)
+
+    include_directories(${DISCORD_RPC_DIR}/include)
+endif()
+
 include_directories("libs/optick")
 
 if(OPTICK)
@@ -470,6 +481,8 @@ file(GLOB_RECURSE CM_SOURCES cm/*.cpp)
 
 file(GLOB FRAMEWORK_INCLUDES framework/*.h)
 file(GLOB FRAMEWORK_SOURCES framework/*.cpp)
+list(REMOVE_ITEM FRAMEWORK_INCLUDES framework/DiscordRPC.h)
+list(REMOVE_ITEM FRAMEWORK_SOURCES framework/DiscordRPC.cpp)
 
 file(GLOB FRAMEWORK_IMGUI_INCLUDES imgui/*.h)
 file(GLOB FRAMEWORK_IMGUI_SOURCES imgui/*.cpp)
@@ -1291,6 +1304,11 @@ if(DOOM_CLASSIC)
 	list(APPEND RBDOOM3_SOURCES ${TIMIDITY_SOURCES})
 endif()
 
+if(DISCORD_RPC)
+    list(APPEND RBDOOM3_INCLUDES framework/DiscordRPC.h)
+    list(APPEND RBDOOM3_SOURCES framework/DiscordRPC.cpp)
+endif()
+
 add_definitions(-D__DOOM__
 				#-DBUILD_FREETYPE
 				#-DFT2_BUILD_LIBRARY
@@ -1708,6 +1726,10 @@ endif()
 # needs to come after nvrhi_d3d11 etc. for link order
 target_link_libraries(RBDoom3BFG nvrhi)
 target_link_libraries(RBDoom3BFG ShaderMakeBlob ${MASKED_OCCLUSION_LIBRARY} ${ISPC_TEXCOMP_LIBRARY})
+
+if(DISCORD_RPC)
+    target_link_libraries(RBDoom3BFG discord-rpc)
+endif()
 
 add_subdirectory(shaders)
 add_dependencies(Shaders ShaderMake)
